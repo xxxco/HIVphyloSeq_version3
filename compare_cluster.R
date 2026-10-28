@@ -1,10 +1,7 @@
 #!/usr/bin/env Rscript
 # ============================================================
-# compare_cluster_full.R  (REVISED 2 - multi-metric)
+# compare_cluster_full.R 
 #
-# Design UNCHANGED: subregion clustering vs full-length clustering,
-# within each method (ClusterPicker vs full-length CP reference;
-# HIV-TRACE vs full-length HIV-TRACE reference).
 #
 # METRIC CHANGE (this revision):
 #   V-measure is dominated by the large mutually-singleton background

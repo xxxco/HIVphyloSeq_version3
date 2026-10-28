@@ -38,12 +38,6 @@ Counts down to "One per patient" are of **database records** (LANL emits one row
 
 The set of 525 is what the phylogenies were built from; the 7 duplicate patients are removed immediately before clustering, so the trees are pruned rather than rebuilt.
 
-### Changes from V2
-
-- **No gag-coverage filter.** V2 required complete *gag* coverage, which removed 114 genomes (610 → 496). Coverage is now handled per region (see below), so no genome is excluded from the cohort for lacking one region.
-- **Three new exclusions.** Sequences LANL flagged as problematic *after* our download (83), genomes containing an inverted segment (2), and the second deposit of a virus submitted under two patient IDs (7).
-- **Counting unit stated.** The early steps count database records, not sequences; the two differ roughly two-fold because LANL emits one row per sequence–publication link.
-
 ### Geographic filter — 21 eligible countries
 
 United States, Canada, Portugal, Spain, France, Belgium, Luxembourg, Switzerland, Italy, Germany, Austria, Czech Republic, Slovenia, Denmark, Poland, Slovakia, Hungary, Croatia, Sweden, Norway, United Kingdom.

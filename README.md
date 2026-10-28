@@ -34,23 +34,6 @@ Prune 7 duplicate patients (→ 518 analysis set)
 
 ---
 
-## What changed from V2
-
-| | V2 | V3 |
-|---|---|---|
-| Cohort | 496 | **518** |
-| Subregions | 7 | **12** (adds *gag*, *pol*, *vpr*, *vpu*, *tat*) |
-| Subregion extraction | substring by HXB2 offset | **pairwise alignment to HXB2** |
-| *gag*-coverage filter | removed 114 genomes | **removed**; coverage handled per region |
-| Cohort exclusions | — | LANL re-check (83), inverted segments (2), duplicate patients (7) |
-| HIV-TRACE input | re-aligned to an HXB2 reference | **`--skip-alignment`** on the existing alignment |
-| Reference threshold | fixed at 3.0% | fixed at 3.0% **plus a 0.5–4.5% sweep** |
-
-The extraction change matters: V2 cut each subregion with `substr()` at fixed HXB2 offsets, which assumes every sequence is colinear with HXB2. Only 4 of 610 sequences were, so indels shifted the cut. V3 aligns each sequence to HXB2 first and cuts on the mapped coordinates.
-
-The HIV-TRACE change matters too: without `--skip-alignment`, `bealign` trims every sequence to the span of the supplied `-r` reference. In V2 the near-full-length and *gag-pol* runs both used `HXB2_pol`, so both were silently reduced to 2,844 nt of *pol*, and the reported *gag-pol* F1 of 1.000 was *pol* compared against *pol*.
-
----
 
 ## Software Requirements
 

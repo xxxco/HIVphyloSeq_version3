@@ -219,7 +219,7 @@ HIVphyloSeq_V3/
 ├── README.md                     # this file
 ├── sequence_selection.md         # LANL download instructions, filtering criteria, cohort description
 ├── compare_cluster.R             # multi-metric cluster concordance analysis (clevr R package)
-└── accession_number/             # GenBank accessions (Se.ID, Accession), one CSV per region
+└── accession_number/             # GenBank accessions, one CSV per region (single Accession column)
     ├── accessions_fulllength.csv
     ├── accessions_Gag_Pol.csv
     ├── accessions_Pol.csv

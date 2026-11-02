@@ -10,7 +10,7 @@ All analyses used publicly available sequences downloaded on Feb. 4, 2025, from 
 LANL sequences (all fields, no filters, 14 batches by Se ID range)
     │
     ▼
-Sequence filtering (→ 525 near-full-length subtype B genomes, one per patient)
+Sequence filtering (one sequence per patient)
     │
     ▼
 Extract 12 subregions by pairwise alignment to HXB2
@@ -20,9 +20,6 @@ Multiple sequence alignment (DECIPHER)
     │
     ▼
 Maximum-likelihood phylogeny (RAxML-NG)
-    │
-    ▼
-Prune 7 duplicate patients (→ 518 analysis set)
     │
     ├─► ClusterPicker ──┐
     │                   ├─► Multi-metric concordance (compare_cluster.R)

@@ -8,7 +8,6 @@
 #   that is normal in HIV clustering, so it saturates near 1 and hides
 #   real differences between regions/thresholds. We therefore also
 #   report:
-#     * ARI  - Adjusted Rand Index (chance-corrected; not singleton-inflated)
 #     * pairwise precision / recall / F1 on co-clustered ("linked") pairs
 #         - pw_recall    = sensitivity: fraction of full-length linked pairs
 #                          the subregion also links (structure recovered)
@@ -129,8 +128,7 @@ pairwise_prf <- function(pred, ref) {
   precision <- if (pairs_pred > 0) tp / pairs_pred else NA_real_
   recall    <- if (pairs_ref  > 0) tp / pairs_ref  else NA_real_
   f1 <- if ((pairs_pred + pairs_ref) > 0) 2 * tp / (pairs_pred + pairs_ref) else NA_real_
-  list(pw_precision = precision, pw_recall = recall, pw_f1 = f1,
-       linked_pairs_shared = tp, linked_pairs_pred = pairs_pred, linked_pairs_ref = pairs_ref)
+  list(pw_precision = precision, pw_recall = recall, pw_f1 = f1)
 }
 
 parse_cp <- function(log_path) {
@@ -226,20 +224,18 @@ ref_clustered_ids <- function(ref_df, universe_ids, ref_col) {
 #   V_measure_bothclustered = HEADLINE (clustered by both)
 #   V_measure_refclustered = ref-clustered set (also scores misses)
 #   V_measure_full         = legacy full-universe value (singleton-inflated)
-#   ARI / pairwise         = full universe (already robust to singletons)
+#   pairwise               = full universe (already robust to singletons)
 calc_metrics <- function(pred_df, ref_df, universe_ids, pred_col, ref_col) {
   na_out <- list(V_measure_bothclustered = NA_real_, n_both_clustered = 0L,
                  V_measure_refclustered = NA_real_, V_measure_full = NA_real_,
-                 ARI = NA_real_, pw_precision = NA_real_, pw_recall = NA_real_,
-                 pw_f1 = NA_real_, linked_pairs_shared = NA_real_,
-                 linked_pairs_pred = NA_real_, linked_pairs_ref = NA_real_,
-                 n_ref_clustered = 0L)
+                 pw_precision = NA_real_, pw_recall = NA_real_,
+                 pw_f1 = NA_real_, n_ref_clustered = 0L)
   if (length(universe_ids) == 0) {
     message("  Empty sequence universe -> metrics NA.")
     return(na_out)
   }
   
-  # Full-universe labels for ARI / pairwise / legacy V-measure.
+  # Full-universe labels for pairwise / legacy V-measure.
   pred_labels <- build_labels(pred_df, universe_ids, pred_col)
   ref_labels  <- build_labels(ref_df,  universe_ids, ref_col)
   prf <- pairwise_prf(pred_labels, ref_labels)
@@ -272,13 +268,9 @@ calc_metrics <- function(pred_df, ref_df, universe_ids, pred_col, ref_col) {
     n_both_clustered        = length(eval_both),
     V_measure_refclustered = vm_ref,
     V_measure_full         = clevr::v_measure(pred_labels, ref_labels),
-    ARI                    = clevr::adj_rand_index(pred_labels, ref_labels),
     pw_precision           = prf$pw_precision,
     pw_recall              = prf$pw_recall,
     pw_f1                  = prf$pw_f1,
-    linked_pairs_shared    = prf$linked_pairs_shared,
-    linked_pairs_pred      = prf$linked_pairs_pred,
-    linked_pairs_ref       = prf$linked_pairs_ref,
     n_ref_clustered        = length(eval_ids)
   )
 }
@@ -347,7 +339,7 @@ message(sprintf("Year         : %s", Year))
 message(sprintf("Bootstraps   : %s", paste(BS_TAGS, collapse = ", ")))
 message(sprintf("GDs          : %s", paste(sprintf("%.3f", desired_GD), collapse = ", ")))
 message(sprintf("Reference GD : %.3f (BS=%s)", FULL_LENGTH_REF_GD_NUMERIC, FULL_LENGTH_REF_BS_TAG))
-message("Metrics      : V-measure over clustered-by-both set (headline), ref-clustered set + ARI + pairwise; full V-measure (legacy)")
+message("Metrics      : V-measure over clustered-by-both set (headline), ref-clustered set + pairwise; full V-measure (legacy)")
 
 # --- Load full-length references ---
 ref_cp_df <- parse_cp(FULL_LENGTH_CP_REF_LOG_PATH)
@@ -402,9 +394,6 @@ for (region in regions) {
           pw_f1        = round(m$pw_f1, 6),
           V_measure_full = round(m$V_measure_full, 6),  # legacy (singleton-inflated)
           n_ref_clustered     = m$n_ref_clustered,      # seqs the headline V-measure rests on
-          linked_pairs_shared = m$linked_pairs_shared,
-          linked_pairs_pred   = m$linked_pairs_pred,
-          linked_pairs_ref    = m$linked_pairs_ref,
           n_predicted_clusters = length(unique(current_cp_df$CP_cluster)),
           n_reference_clusters = length(unique(ref_cp_df$CP_cluster)),
           n_predicted_seqs = nrow(current_cp_df),
@@ -435,9 +424,6 @@ for (region in regions) {
         pw_f1        = round(m$pw_f1, 6),
         V_measure_full = round(m$V_measure_full, 6),  # legacy (singleton-inflated)
         n_ref_clustered     = m$n_ref_clustered,
-        linked_pairs_shared = m$linked_pairs_shared,
-        linked_pairs_pred   = m$linked_pairs_pred,
-        linked_pairs_ref    = m$linked_pairs_ref,
         n_predicted_clusters = length(unique(current_trace_df$TRACE_cluster)),
         n_reference_clusters = length(unique(ref_trace_df$TRACE_cluster)),
         n_predicted_seqs = nrow(current_trace_df),

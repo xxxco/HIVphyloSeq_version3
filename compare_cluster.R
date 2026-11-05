@@ -9,18 +9,18 @@
 #   real differences between regions/thresholds. We therefore also
 #   report:
 #     * pairwise precision / recall / F1 on co-clustered ("linked") pairs
-#         - pw_recall    = sensitivity: fraction of full-length linked pairs
+#         - pw_recall    = sensitivity: fraction of near-full-length linked pairs
 #                          the subregion also links (structure recovered)
 #         - pw_precision = PPV: fraction of subregion linked pairs that are
-#                          also linked in full-length (spurious links)
+#                          also linked in near-full-length (spurious links)
 #   V-measure is reported three ways:
 #     * V_measure_bothclustered = HEADLINE. Scored ONLY over sequences that are
 #         in a cluster (>=2 members in the shared universe) in BOTH the subregion
-#         and the full-length reference, so neither side's unclustered sequences
+#         and the near-full-length reference, so neither side's unclustered sequences
 #         form a large group that biases the value. n_both_clustered = its size.
-#     * V_measure_refclustered = scored over sequences in a full-length cluster
+#     * V_measure_refclustered = scored over sequences in a near-full-length cluster
 #         (>=2 members), whether or not the subregion clustered them, so it also
-#         scores full-length clusters the subregion missed entirely.
+#         scores near-full-length clusters the subregion missed entirely.
 #     * V_measure_full = legacy full-universe value (singleton-inflated); kept
 #         only for contrast, NOT for interpretation.
 #
@@ -65,11 +65,11 @@ OUTPUT_DIR <- file.path(PROJECT_ROOT, "Cluster", "V_measure_Comparisons",
                         "V_measure_Dual_Ref", Year)
 dir.create(OUTPUT_DIR, showWarnings = FALSE, recursive = TRUE)
 
-# --- Full-length reference ---
+# --- Near-full-length reference ---
 # Default matches the manuscript's reference configuration (GD=3.0%, BS=90%
 # for CP; GD=3.0% for HIV-TRACE). The reference GD can be overridden via a
 # 4th CLI arg (see arg-parsing block below) to support the reviewer-requested
-# sensitivity analysis: re-scoring every subregion against full-length
+# sensitivity analysis: re-scoring every subregion against near-full-length
 # partitions defined at OTHER GD thresholds, not just 3.0%. Reference BS
 # stays fixed at bs90 in all cases -- the reviewer's request was about the
 # GD threshold, not bootstrap support.
@@ -207,7 +207,7 @@ parse_trace <- function(json_path) {
   )
 }
 
-# Reference-clustered evaluation set: sequences whose full-length reference
+# Reference-clustered evaluation set: sequences whose near-full-length reference
 # cluster has >= 2 members PRESENT in this universe. Restricting to this set
 # removes the trivially-perfect singleton mass that pins the full-universe
 # V-measure near 1. (Ref clusters that collapse to a single member within the
@@ -241,7 +241,7 @@ calc_metrics <- function(pred_df, ref_df, universe_ids, pred_col, ref_col) {
   prf <- pairwise_prf(pred_labels, ref_labels)
   
   # Headline V-measure: sequences clustered (in a cluster of >= 2 within the
-  # universe) by BOTH the subregion and the full-length reference, so neither
+  # universe) by BOTH the subregion and the near-full-length reference, so neither
   # side's unclustered sequences form a large group that biases the value.
   # ref_clustered_ids() works for either side: it keeps members of clusters
   # with >= 2 members in the given set.
@@ -254,7 +254,7 @@ calc_metrics <- function(pred_df, ref_df, universe_ids, pred_col, ref_col) {
   }
 
   # Secondary V-measure over the reference-clustered set: also scores
-  # full-length clusters the subregion missed (pred singletons = misses).
+  # near-full-length clusters the subregion missed (pred singletons = misses).
   eval_ids <- ref_clustered_ids(ref_df, universe_ids, ref_col)
   vm_ref <- NA_real_
   if (length(eval_ids) >= 2) {
@@ -283,7 +283,7 @@ calc_metrics <- function(pred_df, ref_df, universe_ids, pred_col, ref_col) {
 #   Rscript compare_cluster_full.R regions.txt bs90 0.03               # one bootstrap, one GD
 #   Rscript compare_cluster_full.R regions.txt "" 0.03                 # all bootstraps, one GD
 #   Rscript compare_cluster_full.R regions.txt "" "" 0.02              # all bootstraps, all GDs,
-#                                                                       #   reference full-length GD = 2.0%
+#                                                                       #   reference near-full-length GD = 2.0%
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 1) {
   stop("Usage: Rscript compare_cluster_full.R regions.txt [bs_tag] [gd_fraction] [ref_gd_fraction]")
@@ -341,18 +341,18 @@ message(sprintf("GDs          : %s", paste(sprintf("%.3f", desired_GD), collapse
 message(sprintf("Reference GD : %.3f (BS=%s)", FULL_LENGTH_REF_GD_NUMERIC, FULL_LENGTH_REF_BS_TAG))
 message("Metrics      : V-measure over clustered-by-both set (headline), ref-clustered set + pairwise; full V-measure (legacy)")
 
-# --- Load full-length references ---
+# --- Load near-full-length references ---
 ref_cp_df <- parse_cp(FULL_LENGTH_CP_REF_LOG_PATH)
-if (is.null(ref_cp_df)) stop(sprintf("ERROR: full-length CP reference not loaded from %s", FULL_LENGTH_CP_REF_LOG_PATH))
-message(sprintf("Loaded %d full-length CP reference assignments (GD=%.1f%%, BS=%s).",
+if (is.null(ref_cp_df)) stop(sprintf("ERROR: near-full-length CP reference not loaded from %s", FULL_LENGTH_CP_REF_LOG_PATH))
+message(sprintf("Loaded %d near-full-length CP reference assignments (GD=%.1f%%, BS=%s).",
                 nrow(ref_cp_df), FULL_LENGTH_REF_GD_NUMERIC * 100, FULL_LENGTH_REF_BS_TAG))
 
 ref_trace_df <- parse_trace(FULL_LENGTH_TRACE_REF_JSON_PATH)
-if (is.null(ref_trace_df)) stop(sprintf("ERROR: full-length HIV-TRACE reference not loaded from %s", FULL_LENGTH_TRACE_REF_JSON_PATH))
-message(sprintf("Loaded %d full-length HIV-TRACE reference assignments (%d clusters).",
+if (is.null(ref_trace_df)) stop(sprintf("ERROR: near-full-length HIV-TRACE reference not loaded from %s", FULL_LENGTH_TRACE_REF_JSON_PATH))
+message(sprintf("Loaded %d near-full-length HIV-TRACE reference assignments (%d clusters).",
                 nrow(ref_trace_df), length(unique(ref_trace_df$TRACE_cluster))))
 
-# Reference universe = IDs present in the full-length alignment
+# Reference universe = IDs present in the near-full-length alignment
 ref_universe <- read_fasta_ids(fasta_for(FULL_LENGTH_REF_REGION_NAME))
 
 all_results <- list()
@@ -368,12 +368,12 @@ for (region in regions) {
     message(sprintf("  No shared sequence universe for %s; skipping region.", region))
     next
   }
-  message(sprintf("  Sequence universe (region ∩ full-length): %d", length(universe_ids)))
+  message(sprintf("  Sequence universe (region ∩ near-full-length): %d", length(universe_ids)))
   
   for (gd_numeric_val in desired_GD) {
     gd_tag_str <- sprintf("gd%03d", as.integer(round(gd_numeric_val * 1000)))
     
-    # ── A. ClusterPicker subregion vs full-length CP reference ──
+    # ── A. ClusterPicker subregion vs near-full-length CP reference ──
     for (bs_tag in BS_TAGS) {
       cp_log_path <- file.path(CP_BASE, paste0(region, "_CP"), BS_NUMBER_FOLDER,
                                paste0(bs_tag, "_", gd_tag_str), CP_LOG_FILE)
@@ -389,8 +389,8 @@ for (region in regions) {
           Reference_GD = FULL_LENGTH_REF_GD_NUMERIC * 100,
           Reference_Bootstrap = FULL_LENGTH_REF_BS_TAG,
         V_measure_refclustered = round(m$V_measure_refclustered, 6),  # HEADLINE: also scores missed ref clusters
-          pw_recall    = round(m$pw_recall, 6),      # sensitivity to full-length structure
-          pw_precision = round(m$pw_precision, 6),   # PPV vs full-length
+          pw_recall    = round(m$pw_recall, 6),      # sensitivity to near-full-length structure
+          pw_precision = round(m$pw_precision, 6),   # PPV vs near-full-length
           pw_f1        = round(m$pw_f1, 6),
           V_measure_full = round(m$V_measure_full, 6),  # legacy (singleton-inflated)
           n_ref_clustered     = m$n_ref_clustered,      # seqs the headline V-measure rests on
@@ -404,7 +404,7 @@ for (region in regions) {
       }
     }
     
-    # ── B. HIV-TRACE subregion vs full-length HIV-TRACE reference ──
+    # ── B. HIV-TRACE subregion vs near-full-length HIV-TRACE reference ──
     trace_json_path <- file.path(TRACE_BASE, region,
                                  paste0(region, "_hivtrace_GD",
                                         sprintf("%03d", as.integer(round(gd_numeric_val * 1000))), ".json"))
